@@ -4,7 +4,7 @@ import threading
 import time
 
 class blinker:
-    def __init__(self, name, green_total_time, red_total_time, longitude, latitude, color="red", time_remaining=0, car_approaching=False, non_blinker=False):
+    def __init__(self, name, green_total_time, red_total_time, longitude, latitude, color, time_remaining, non_blinker=False):
         self.name = name
         self.color = color
         self.time_remaining = time_remaining
