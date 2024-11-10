@@ -10,7 +10,6 @@ class blinker:
         self.time_remaining = time_remaining
         self.longitude = longitude
         self.latitude = latitude
-        self.car_approaching = car_approaching
         self.green_total_time = green_total_time
         self.red_total_time = red_total_time
         self.non_blinker = non_blinker
@@ -82,7 +81,7 @@ async def set_uncaution(name: str):
 traffic_light = [
     blinker(name="A", color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
     blinker(name="B", color="green", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
-    blinker(name="C", color="", time_remaining=0, longitude=2, latitude=30, green_total_time=7, red_total_time=8, non_blinker=True)
+    blinker(name="C", color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=8, non_blinker=True)
 ]
 # 카운트다운을 별도의 쓰레드에서 시작
 for blinker in traffic_light:
