@@ -83,7 +83,7 @@ def set_main_crossboard(id: int):
 def set_caution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
-            blinker.detect_running_car(True)
+            blinker.detect_running_car()
             return blinker
 
 @app.get("/incaution")
@@ -97,7 +97,7 @@ def set_uncaution(id: int):
 def set_uncaution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
-            blinker.detect_car()
+            blinker.detect_car(True)
             return blinker     
 
 
