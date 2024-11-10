@@ -4,8 +4,8 @@ import threading
 import time
 
 class blinker:
-    def __init__(self, name, green_total_time, red_total_time, longitude, latitude, color, time_remaining, non_blinker=False):
-        self.name = name
+    def __init__(self, id, green_total_time, red_total_time, longitude, latitude, color, time_remaining, non_blinker=False):
+        self.id = id
         self.color = color
         self.time_remaining = time_remaining
         self.longitude = longitude
@@ -13,14 +13,24 @@ class blinker:
         self.green_total_time = green_total_time
         self.red_total_time = red_total_time
         self.non_blinker = non_blinker
+        self.car_approaching = False
+        self.clear_to_board = True
         #신호등 없는 횡단보도
+    def get_non_blinker(self):
+        return self.non_blinker
 
     def update_light(self, color, time_remaining):
         self.color = color
         self.time_remaining = time_remaining
 
-    def detect_car(self, car_approaching):
-        self.car_approaching = car_approaching
+    def detect_car(self, detect_car_):
+        self.car_approaching = detect_car_
+        if detect_car_ == False:
+            self.clear_to_board = True
+        
+    def detect_running_car(self):
+        self.detect_car(True)
+        self.clear_to_board = False
         
     def countdown(self):
         while True:
@@ -41,7 +51,13 @@ class blinker:
         thread.start()
         
 app = FastAPI()
-main_crossboard=""
+# 신호등 객체 생성
+traffic_light = [
+    blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
+    blinker(id=1, color="green", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
+    blinker(id=2, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, non_blinker=True)
+]
+main_id = 0
 
 @app.get("/confirm/string")
 async def confirm_str():
@@ -53,37 +69,40 @@ async def confirm_json():
 
 @app.get("/main_crossboard")
 async def show_blinker_info():
-    return main_crossboard
+    return traffic_light[main_id]
         
 @app.get("/set_crossboard")
-async def set_main_crossboard(name: str):
+async def set_main_crossboard(id: int):
+    global main_id
     for blinker in traffic_light:
-        if blinker.name == name:
-            main_crossboard = blinker
-            return main_crossboard
+        if blinker.id == id:
+            main_id = id
+            return traffic_light[main_id]
 
 @app.get("/caution")
-async def set_caution(name: str):
+async def set_caution(id: int):
     for blinker in traffic_light:
-        if blinker.name == name:
-            blinker.detect_car(True)
+        if blinker.id == id:
+            blinker.detect_running_car(True)
             return blinker
 
 @app.get("/incaution")
-async def set_uncaution(name: str):
+async def set_uncaution(id: int):
     for blinker in traffic_light:
-        if blinker.name == name:
+        if blinker.id == id:
             blinker.detect_car(False)
             return blinker
 
+@app.get("/unmoving")
+async def set_uncaution(id: int):
+    for blinker in traffic_light:
+        if blinker.id == id:
+            blinker.detect_car(True)
+            return blinker     
 
-# 신호등 객체 생성
-traffic_light = [
-    blinker(name="A", color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
-    blinker(name="B", color="green", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
-    blinker(name="C", color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=8, non_blinker=True)
-]
+
 # 카운트다운을 별도의 쓰레드에서 시작
 for blinker in traffic_light:
-    blinker.start_countdown_thread()
+    if blinker.get_non_blinker() == False:
+        blinker.start_countdown_thread()
 
