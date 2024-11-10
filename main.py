@@ -3,8 +3,7 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-@app.get("/confirm")
+@app.get("/")
 async def confirm():
     return "hello"
 
-app.mount("/", StaticFiles(directory="public", html = True), name="static")
