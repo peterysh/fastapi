@@ -97,7 +97,7 @@ def set_uncaution(id: int):
 def set_uncaution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
-            blinker.detect_car(True)
+            blinker.detect_car()
             return blinker     
 
 
