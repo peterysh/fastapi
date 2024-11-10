@@ -60,19 +60,19 @@ traffic_light = [
 main_id = 0
 
 @app.get("/confirm/string")
-async def confirm_str():
+def confirm_str():
     return "hello"
 
 @app.get("/confirm/json")
-async def confirm_json():
+def confirm_json():
     return {"message":"hello"}
 
 @app.get("/main_crossboard")
-async def show_blinker_info():
+def show_blinker_info():
     return traffic_light[main_id]
         
 @app.get("/set_crossboard")
-async def set_main_crossboard(id: int):
+def set_main_crossboard(id: int):
     global main_id
     for blinker in traffic_light:
         if blinker.id == id:
@@ -80,21 +80,21 @@ async def set_main_crossboard(id: int):
             return traffic_light[main_id]
 
 @app.get("/caution")
-async def set_caution(id: int):
+def set_caution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
             blinker.detect_running_car(True)
             return blinker
 
 @app.get("/incaution")
-async def set_uncaution(id: int):
+def set_uncaution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
             blinker.detect_car(False)
             return blinker
 
 @app.get("/unmoving")
-async def set_uncaution(id: int):
+def set_uncaution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
             blinker.detect_car(True)
