@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import threading
 import time
+
 
 class blinker:
     def __init__(self, id, green_total_time, red_total_time, longitude, latitude, color, time_remaining, non_blinker=False):
@@ -51,6 +53,16 @@ class blinker:
         thread.start()
         
 app = FastAPI()
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 출처 허용 (배포 시에는 특정 도메인으로 제한하는 것이 좋음)
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST 등)
+    allow_headers=["*"],  # 모든 헤더 허용
+)
+
 # 신호등 객체 생성
 traffic_light = [
     blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
