@@ -18,6 +18,7 @@ class blinker:
         self.non_blinker = non_blinker
         self.car_approaching = False
         self.clear_to_board = True
+        self.is_counting = False
 
     def get_non_blinker(self):
         return self.non_blinker
@@ -37,14 +38,19 @@ class blinker:
 
     def countdown(self):
         while True:
-            while self.time_remaining > 0:
+            while self.time_remaining > 0:                
                 time.sleep(1)
                 self.time_remaining -= 1
-
-            if self.color == "red":
-                self.update_light("green", self.green_total_time)
-            else:
-                self.update_light("red", self.red_total_time)
+                if self.is_counting == False:
+                    break
+                if self.time_remaining == 0:
+                    if self.color == "red":
+                        self.update_light("green", self.green_total_time)
+                    else:
+                        self.update_light("red", self.red_total_time)
+            if self.is_counting == False:
+                self.color = "red"
+                self.time_remaining = self.red_total_time
 
     def start_countdown_thread(self):
         thread = threading.Thread(target=self.countdown)
@@ -63,12 +69,17 @@ app.add_middleware(
 )
 
 # 신호등 객체 생성
-traffic_light = [
+traffic_lights = [
     blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
-    blinker(id=1, color="green", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
+    blinker(id=1, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
     blinker(id=2, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, non_blinker=True)
 ]
 main_id = 0
+running = 0
+
+@app.get("/")
+def confirm_str():
+    return "hello"
 
 @app.get("/confirm/string")
 def confirm_str():
@@ -80,42 +91,76 @@ def confirm_json():
 
 @app.get("/main_crossboard")
 def show_blinker_info():
-    return traffic_light[main_id]
+    return traffic_lights[main_id]
 
 @app.get("/set_crossboard")
 def set_main_crossboard(id: int):
     global main_id
-    for blinker in traffic_light:
+    for blinker in traffic_lights:
         if blinker.id == id:
             main_id = id
-            return traffic_light[main_id]
+            return traffic_lights[main_id]
 
 @app.get("/caution")
 def set_caution(id: int):
-    for blinker in traffic_light:
+    for blinker in traffic_lights:
         if blinker.id == id:
             blinker.detect_running_car()
             return blinker
 
 @app.get("/incaution")
 def set_uncaution(id: int):
-    for blinker in traffic_light:
+    for blinker in traffic_lights:
         if blinker.id == id:
             blinker.detect_car(False)
             return blinker
 
 @app.get("/unmoving")
 def set_uncaution(id: int):
-    for blinker in traffic_light:
+    for blinker in traffic_lights:
         if blinker.id == id:
             blinker.detect_car(True)
             return blinker
 
+# /start 엔드포인트 추가
+@app.get("/start")
+def start_countdown():
+    global running
+    for blinker in traffic_lights:
+        if not blinker.get_non_blinker():
+            blinker.is_counting = True
+            blinker.start_countdown_thread()
+    running = 1
+    return running
 
-# 카운트다운을 별도의 쓰레드에서 시작
-for blinker in traffic_light:
-    if blinker.get_non_blinker() == False:
-        blinker.start_countdown_thread()
+# /start 엔드포인트 추가
+@app.get("/continue")
+def continue_countdown():
+    global running
+    for blinker in traffic_lights:
+        if not blinker.get_non_blinker():
+            blinker.is_counting = True
+    running = 1
+    return running
+
+# /init 엔드포인트 추가
+@app.get("/stop")
+def init_countdown():
+    global running
+    for blinker in traffic_lights:
+        if not blinker.get_non_blinker():
+            blinker.is_counting = False
+            
+    running = 0
+    return running
+
+# /init 엔드포인트 추가
+@app.get("/status")
+def start_countdown():
+    global running
+    return running
+
+
 
 # HTTP와 HTTPS 서버를 동시에 실행
 def run_servers():
