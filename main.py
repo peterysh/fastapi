@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import threading
 import time
+import uvicorn
 
 
 class blinker:
@@ -17,7 +18,7 @@ class blinker:
         self.non_blinker = non_blinker
         self.car_approaching = False
         self.clear_to_board = True
-        #신호등 없는 횡단보도
+
     def get_non_blinker(self):
         return self.non_blinker
 
@@ -29,38 +30,36 @@ class blinker:
         self.car_approaching = detect_car_
         if detect_car_ == False:
             self.clear_to_board = True
-        
+
     def detect_running_car(self):
         self.detect_car(True)
         self.clear_to_board = False
-        
+
     def countdown(self):
         while True:
             while self.time_remaining > 0:
                 time.sleep(1)
                 self.time_remaining -= 1
 
-            # 시간이 0이 되면 신호 변경
             if self.color == "red":
-                self.update_light("green", self.green_total_time) 
+                self.update_light("green", self.green_total_time)
             else:
-                self.update_light("red", self.red_total_time)  
-                
-    
+                self.update_light("red", self.red_total_time)
+
     def start_countdown_thread(self):
-        # 별도 쓰레드로 카운트다운을 실행
         thread = threading.Thread(target=self.countdown)
         thread.start()
-        
+
+
 app = FastAPI()
 
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 출처 허용 (배포 시에는 특정 도메인으로 제한하는 것이 좋음)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST 등)
-    allow_headers=["*"],  # 모든 헤더 허용
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # 신호등 객체 생성
@@ -77,12 +76,12 @@ def confirm_str():
 
 @app.get("/confirm/json")
 def confirm_json():
-    return {"message":"hello"}
+    return {"message": "hello"}
 
 @app.get("/main_crossboard")
 def show_blinker_info():
     return traffic_light[main_id]
-        
+
 @app.get("/set_crossboard")
 def set_main_crossboard(id: int):
     global main_id
@@ -110,7 +109,7 @@ def set_uncaution(id: int):
     for blinker in traffic_light:
         if blinker.id == id:
             blinker.detect_car(True)
-            return blinker     
+            return blinker
 
 
 # 카운트다운을 별도의 쓰레드에서 시작
@@ -118,3 +117,28 @@ for blinker in traffic_light:
     if blinker.get_non_blinker() == False:
         blinker.start_countdown_thread()
 
+# HTTP와 HTTPS 서버를 동시에 실행
+def run_servers():
+    def run_http():
+        uvicorn.run(app, host="0.0.0.0", port=80)
+
+    def run_https():
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=443,
+            ssl_keyfile="path/to/your/private.key",
+            ssl_certfile="path/to/your/certificate.crt",
+        )
+
+    http_thread = threading.Thread(target=run_http)
+    https_thread = threading.Thread(target=run_https)
+
+    http_thread.start()
+    https_thread.start()
+    http_thread.join()
+    https_thread.join()
+
+
+if __name__ == "__main__":
+    run_servers()
