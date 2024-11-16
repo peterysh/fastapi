@@ -7,13 +7,14 @@ import uvicorn
 
 
 class blinker:
-    def __init__(self, id, green_total_time, red_total_time, longitude, latitude, color, time_remaining, non_blinker=False):
+    def __init__(self, id, green_total_time, red_total_time, green_blinking_time, longitude, latitude, color, time_remaining, non_blinker=False):
         self.id = id
         self.color = color
         self.time_remaining = time_remaining
         self.longitude = longitude
         self.latitude = latitude
         self.green_total_time = green_total_time
+        self.green_blinking_time = green_blinking_time
         self.red_total_time = red_total_time
         self.non_blinker = non_blinker
         self.car_approaching = False
@@ -40,7 +41,9 @@ class blinker:
                 if self.time_remaining == 0:
                     if self.color == "red":
                         self.update_light("green", self.green_total_time)
-                    else:
+                    elif self.color == "green":
+                        self.update_light("blinking_green", self.green_blinking_time)
+                    elif self.color == "blinking_green":
                         self.update_light("red", self.red_total_time)
             if self.is_counting == False:
                 self.color = "red"
@@ -64,12 +67,12 @@ app.add_middleware(
 
 # 신호등 객체 생성
 traffic_lights = [
-    blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
-    blinker(id=1, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
-    blinker(id=2, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
-    blinker(id=3, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, non_blinker=True)
+    blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, green_blinking_time=10, non_blinker=False),
+    blinker(id=1, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, green_blinking_time=10, non_blinker=False),
+    blinker(id=2, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, green_blinking_time=10, non_blinker=False),
+    blinker(id=3, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, green_blinking_time=0, non_blinker=True)
 ]
-main_id = 0
+main_id = 2
 running = 0
 is_start = False
 
@@ -115,6 +118,27 @@ def set_uncaution():
     #         return blinker
     return 0
 
+@app.get("/setup")
+def setup(red_time: int, green_time: int, green_blinking_time: int):
+    traffic_lights[2].red_total_time = red_time
+    traffic_lights[2].green_total_time = green_time
+    traffic_lights[2].green_blinking_time = green_blinking_time
+    traffic_lights[2] = "red"
+    traffic_lights[2].time_remaining = red_time
+    return traffic_lights[2]
+
+@app.get("/coloring")
+def coloring(color: int):
+    if color == 0:
+        traffic_lights[2].color = "red"
+        traffic_lights[2].time_remaining = traffic_lights[2].red_total_time
+    elif color == 1:
+        traffic_lights[2].color = "green"
+        traffic_lights[2].time_remaining = traffic_lights[2].green_total_time
+    elif color == 2:
+        traffic_lights[2].color = "blinking_green"
+        traffic_lights[2].time_remaining = traffic_lights[2].green_blinking_time
+    return traffic_lights[2]
 
 # /start 엔드포인트 추가
 @app.get("/start")
