@@ -29,12 +29,6 @@ class blinker:
 
     def detect_car(self, detect_car_):
         self.car_approaching = detect_car_
-        if detect_car_ == False:
-            self.clear_to_board = True
-
-    def detect_running_car(self):
-        self.detect_car(True)
-        self.clear_to_board = False
 
     def countdown(self):
         while True:
@@ -72,10 +66,12 @@ app.add_middleware(
 traffic_lights = [
     blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, non_blinker=False),
     blinker(id=1, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
-    blinker(id=2, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, non_blinker=True)
+    blinker(id=2, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, non_blinker=False),
+    blinker(id=3, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, non_blinker=True)
 ]
 main_id = 0
 running = 0
+is_start = False
 
 @app.get("/")
 def confirm_str():
@@ -102,29 +98,31 @@ def set_main_crossboard(id: int):
             return traffic_lights[main_id]
 
 @app.get("/caution")
-def set_caution(id: int):
-    for blinker in traffic_lights:
-        if blinker.id == id:
-            blinker.detect_running_car()
-            return blinker
+def set_caution():
+    traffic_lights[3].detect_car(True)
+    # for blinker in traffic_lights:
+    #     if blinker.id == id:
+    #         blinker.detect_running_car()
+    #         return blinker
+    return 1
 
 @app.get("/incaution")
-def set_uncaution(id: int):
-    for blinker in traffic_lights:
-        if blinker.id == id:
-            blinker.detect_car(False)
-            return blinker
+def set_uncaution():
+    traffic_lights[3].detect_car(False)
+    # for blinker in traffic_lights:
+    #     if blinker.id == id:
+    #         blinker.detect_car(False)
+    #         return blinker
+    return 0
 
-@app.get("/unmoving")
-def set_uncaution(id: int):
-    for blinker in traffic_lights:
-        if blinker.id == id:
-            blinker.detect_car(True)
-            return blinker
 
 # /start 엔드포인트 추가
 @app.get("/start")
 def start_countdown():
+    global is_start
+    if is_start == True:
+        return is_start
+    
     global running
     for blinker in traffic_lights:
         if not blinker.get_non_blinker():
