@@ -69,7 +69,7 @@ app.add_middleware(
 traffic_lights = [
     blinker(id=0, color="red", time_remaining=10, longitude=0, latitude=20, green_total_time=10, red_total_time=5, green_blinking_time=10, non_blinker=False),
     blinker(id=1, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=7, red_total_time=8, green_blinking_time=10, non_blinker=False),
-    blinker(id=2, color="red", time_remaining=15, longitude=50, latitude=70, green_total_time=10, red_total_time=12, green_blinking_time=6, non_blinker=False),
+    blinker(id=2, color="red", time_remaining=12, longitude=50, latitude=70, green_total_time=10, red_total_time=12, green_blinking_time=6, non_blinker=False),
     blinker(id=3, color="", time_remaining=0, longitude=2, latitude=30, green_total_time=0, red_total_time=0, green_blinking_time=0, non_blinker=True)
 ]
 main_id = 2
