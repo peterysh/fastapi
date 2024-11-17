@@ -42,8 +42,6 @@ class blinker:
                     if self.color == "red":
                         self.update_light("green", self.green_total_time)
                     elif self.color == "green":
-                        self.update_light("blinking_green", self.green_blinking_time)
-                    elif self.color == "blinking_green":
                         self.update_light("red", self.red_total_time)
             if self.is_counting == False:
                 self.color = "red"
