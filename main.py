@@ -123,7 +123,7 @@ def setup(red_time: int, green_time: int, green_blinking_time: int):
     traffic_lights[2].red_total_time = red_time
     traffic_lights[2].green_total_time = green_time
     traffic_lights[2].green_blinking_time = green_blinking_time
-    traffic_lights[2] = "red"
+    traffic_lights[2].color = "red"
     traffic_lights[2].time_remaining = red_time
     return traffic_lights[2]
 
